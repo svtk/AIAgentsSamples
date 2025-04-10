@@ -1,8 +1,12 @@
 package org.example.util
 
+import dev.langchain4j.agent.tool.ToolSpecification
+import dev.langchain4j.agent.tool.ToolSpecifications
+import dev.langchain4j.data.message.AiMessage
 import dev.langchain4j.data.message.ChatMessage
 import dev.langchain4j.data.message.SystemMessage
 import dev.langchain4j.data.message.UserMessage
+import dev.langchain4j.model.chat.request.ChatRequest
 import dev.langchain4j.model.openai.OpenAiChatModel
 import dev.langchain4j.model.openai.OpenAiChatModelName
 
@@ -27,6 +31,21 @@ fun llmCall(
 
 fun llmCall(messages: List<ChatMessage>): String =
     client.chat(messages).aiMessage().text()
+
+fun llmCall(
+    messages: List<ChatMessage>,
+    toolSpecifications: List<ToolSpecification>?
+): AiMessage {
+    val initialRequest: ChatRequest = ChatRequest.builder()
+        .messages(messages)
+        .toolSpecifications(toolSpecifications)
+        .build()
+    return client.chat(initialRequest).aiMessage()
+        .also { println("Response:\n$it") }
+}
+
+inline fun <reified T: Any> toolSpecifications(): List<ToolSpecification> =
+    ToolSpecifications.toolSpecificationsFrom(T::class.java)
 
 fun main() {
     val response = llmCall("Hello, how are you?")
